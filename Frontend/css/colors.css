@@ -85,7 +85,12 @@
     --shadow-btn-accent-hover:
         0 4px 16px rgba(242, 112, 0, 0.60),
         0 0 40px rgba(242, 112, 0, 0.32);
-
+    
     --shadow-focus:
         0 0 0 3px rgba(242, 112, 0, 0.15);
+}
+
+/* Forzar el comportamiento del atributo hidden en toda la app */
+[hidden] {
+    display: none !important;
 }

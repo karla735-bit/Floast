@@ -85,7 +85,7 @@ async function init() {
 
     loadingScreen.hidden = true;
     propMain.hidden      = false;
-    lucide.createIcons();
+    createIcons();
 
   } catch (err) {
     console.error("Error cargando propiedad:", err);
