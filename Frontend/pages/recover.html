@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floast - Recuperar Contraseña</title>
+    <link rel="stylesheet" href="../css/colors.css">
+    <link rel="stylesheet" href="../css/recover.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>DOMI</h1>
+                <p>Recupera tu contraseña</p>
+            </div>
+
+            <!-- Indicador de pasos -->
+            <div class="steps-indicator">
+                <div class="step-dot active" id="dotStep1">
+                    <div class="dot">1</div>
+                    <span class="step-label">Correo</span>
+                </div>
+                <div class="step-connector" id="stepConnector1"></div>
+                <div class="step-dot" id="dotStep2">
+                    <div class="dot">2</div>
+                    <span class="step-label">Código</span>
+                </div>
+                <div class="step-connector" id="stepConnector2"></div>
+                <div class="step-dot" id="dotStep3">
+                    <div class="dot">3</div>
+                    <span class="step-label">Contraseña</span>
+                </div>
+            </div>
+
+            <form id="recoverForm" class="auth-form">
+
+                <!-- Paso 1: Verificar Email -->
+                <div id="recoverStep1" class="recover-step active">
+                    <h3>Verificar Identidad</h3>
+
+                    <p class="step-description">
+                        Ingresa el correo asociado a tu cuenta. Te enviaremos un enlace para recuperar tu contraseña.
+                    </p>
+
+                    <!-- Banner de éxito al enviar -->
+                    <div class="success-banner" id="successBanner">
+                        <span class="icon">✉️</span>
+                        <span>Correo enviado. Revisa tu bandeja de entrada.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="recoverEmail">Correo Electrónico</label>
+                        <input
+                            type="email"
+                            id="recoverEmail"
+                            name="email"
+                            placeholder="tu@email.com"
+                            autocomplete="email"
+                            required
+                        >
+                        <span class="error-message" id="recoverEmailError"></span>
+                    </div>
+
+                    <button type="button" class="btn-submit" id="nextStep1">
+                        Enviar Enlace
+                    </button>
+                </div>
+
+                <!-- Paso 2: Ingresar Código -->
+                <div id="recoverStep2" class="recover-step">
+                    <h3>Verificar Código</h3>
+
+                    <p class="step-description">
+                        Hemos enviado un código de 6 dígitos a tu correo. Ingrésalo a continuación.
+                    </p>
+
+                    <div class="form-group">
+                        <label for="verificationCode">Código de Verificación</label>
+                        <input
+                            type="text"
+                            id="verificationCode"
+                            name="code"
+                            placeholder="000000"
+                            maxlength="6"
+                            inputmode="numeric"
+                            autocomplete="one-time-code"
+                            required
+                        >
+                        <span class="error-message" id="codeError"></span>
+                    </div>
+
+                    <p class="resend-text">
+                        ¿No recibiste el código?
+                        <button type="button" id="resendBtn" class="link-btn">Reenviar</button>
+                    </p>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="backStep2">Atrás</button>
+                        <button type="button" class="btn-submit" id="nextStep2">Verificar</button>
+                    </div>
+                </div>
+
+                <!-- Paso 3: Nueva Contraseña -->
+                <div id="recoverStep3" class="recover-step">
+                    <h3>Nueva Contraseña</h3>
+
+                    <p class="step-description">
+                        Crea una contraseña nueva y segura para tu cuenta.
+                    </p>
+
+                    <div class="form-group">
+                        <label for="newPassword">Nueva Contraseña</label>
+                        <div class="password-input-wrapper">
+                            <input
+                                type="password"
+                                id="newPassword"
+                                name="password"
+                                placeholder="Contraseña"
+                                autocomplete="new-password"
+                                required
+                            >
+                            <button type="button" class="toggle-password" id="toggleNewPassword">👁️</button>
+                        </div>
+                        <span class="error-message" id="newPasswordError"></span>
+
+                        <div class="password-strength">
+                            <div class="strength-meter">
+                                <div id="strengthBar" class="strength-bar"></div>
+                            </div>
+                            <p id="strengthText" class="strength-text">-</p>
+                        </div>
+
+                        <div class="password-requirements">
+                            <p class="requirement-title">La contraseña debe contener:</p>
+                            <ul>
+                                <li id="req-length"><span class="check">✗</span> Mínimo 8 caracteres</li>
+                                <li id="req-uppercase"><span class="check">✗</span> Al menos una mayúscula</li>
+                                <li id="req-number"><span class="check">✗</span> Al menos un número</li>
+                                <li id="req-special"><span class="check">✗</span> Al menos un carácter especial (!@#$%^&*)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmNewPassword">Confirmar Contraseña</label>
+                        <div class="password-input-wrapper">
+                            <input
+                                type="password"
+                                id="confirmNewPassword"
+                                name="confirmPassword"
+                                placeholder="Confirma tu contraseña"
+                                autocomplete="new-password"
+                                required
+                            >
+                            <button type="button" class="toggle-password" id="toggleConfirmNewPassword">👁️</button>
+                        </div>
+                        <span class="error-message" id="confirmNewPasswordError"></span>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="backStep3">Atrás</button>
+                        <button type="submit" class="btn-submit">Cambiar Contraseña</button>
+                    </div>
+                </div>
+
+            </form>
+
+            <div class="auth-divider">
+                <span>¿Recordaste tu contraseña?</span>
+            </div>
+
+            <a href="login.html" class="btn-link">Iniciar sesión</a>
+        </div>
+    </div>
+
+    <script type="module" src="../scripts/recover.js"></script>
+</body>
+</html>

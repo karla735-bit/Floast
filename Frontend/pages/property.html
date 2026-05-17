@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floast - Propiedad</title>
+  <link rel="stylesheet" href="../css/colors.css">
+  <link rel="stylesheet" href="../css/property.css">
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────── -->
+  <header class="prop-header">
+    <div class="header-left">
+      <a href="dashboard.html" class="btn-back" aria-label="Volver al dashboard">
+        <i data-lucide="arrow-left"></i>
+      </a>
+      <div class="header-prop-info">
+        <div class="header-breadcrumb">
+          <span class="breadcrumb-home">Mis Propiedades</span>
+          <i data-lucide="chevron-right" class="breadcrumb-sep"></i>
+          <span class="breadcrumb-current" id="headerPropName">—</span>
+        </div>
+        <div class="header-meta" id="headerMeta">
+          <!-- tipo · ubicación · N unidades — se llena con JS -->
+        </div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <span class="prop-status-badge" id="propStatusBadge"></span>
+      <button class="btn-icon" id="btnEditProp" title="Editar propiedad">
+        <i data-lucide="pencil"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Loading ─────────────────────────────────────────────── -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- ── Main ────────────────────────────────────────────────── -->
+  <main class="prop-main" id="propMain" hidden>
+
+    <!-- ── Caso: propiedad con múltiples unidades ── -->
+    <div id="multiView">
+
+      <!-- Tabs de unidades -->
+      <div class="units-bar" id="unitsBar" role="tablist" aria-label="Unidades de la propiedad">
+        <!-- generado por JS -->
+      </div>
+
+      <!-- Panel de detalle de la unidad seleccionada -->
+      <div class="unit-detail" id="unitDetail">
+        <p class="unit-empty-msg">Selecciona una unidad para ver sus detalles.</p>
+      </div>
+    </div>
+
+    <!-- ── Caso: propiedad de una sola unidad (casa/depto) ── -->
+    <div id="singleView" hidden>
+      <div class="unit-detail" id="singleDetail"></div>
+    </div>
+
+  </main>
+
+  <!-- ── Modal: editar propiedad ─────────────────────────────── -->
+  <div class="modal-overlay" id="modalEditProp" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editPropTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="editPropTitle">Editar Propiedad</h3>
+        <button class="modal-close" id="editPropClose" aria-label="Cerrar">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <form id="editPropForm" class="modal-form" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ePropName">Nombre</label>
+            <input type="text" id="ePropName" required>
+            <span class="error-message" id="ePropNameError"></span>
+          </div>
+          <div class="form-group">
+            <label for="ePropType">Tipo</label>
+            <select id="ePropType" required>
+              <option value="casa">Casa</option>
+              <option value="departamento">Departamento</option>
+              <option value="cuarto">Cuarto / Habitación</option>
+              <option value="condominio">Condominio</option>
+              <option value="edificio">Edificio</option>
+              <option value="local">Local comercial</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ePropLocation">Ubicación</label>
+            <input type="text" id="ePropLocation" required>
+            <span class="error-message" id="ePropLocationError"></span>
+          </div>
+          <div class="form-group">
+            <label for="ePropUnits">Unidades</label>
+            <input type="number" id="ePropUnits" min="1" required>
+            <span class="error-message" id="ePropUnitsError"></span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ePropPrice">Renta mensual ($)</label>
+            <input type="number" id="ePropPrice" min="0" required>
+            <span class="error-message" id="ePropPriceError"></span>
+          </div>
+          <div class="form-group">
+            <label for="ePropStatus">Estado</label>
+            <select id="ePropStatus" required>
+              <option value="disponible">Disponible</option>
+              <option value="rentada">Rentada</option>
+              <option value="mantenimiento">En mantenimiento</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="editPropCancel">Cancelar</button>
+          <button type="submit" class="btn-submit" id="editPropSubmit">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Modal: editar unidad ────────────────────────────────── -->
+  <div class="modal-overlay" id="modalEditUnit" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3 class="modal-title" id="editUnitTitle">Editar Unidad</h3>
+        <button class="modal-close" id="editUnitClose" aria-label="Cerrar">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <form id="editUnitForm" class="modal-form" novalidate>
+        <input type="hidden" id="editUnitId">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eUnitLabel">Nombre / Número</label>
+            <input type="text" id="eUnitLabel" placeholder="Ej. 2A, Cuarto 3" required>
+            <span class="error-message" id="eUnitLabelError"></span>
+          </div>
+          <div class="form-group">
+            <label for="eUnitStatus">Estado</label>
+            <select id="eUnitStatus">
+              <option value="disponible">Disponible</option>
+              <option value="rentada">Rentada</option>
+              <option value="mantenimiento">En mantenimiento</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eUnitPrice">Renta mensual ($)</label>
+            <input type="number" id="eUnitPrice" min="0" placeholder="0">
+            <span class="error-message" id="eUnitPriceError"></span>
+          </div>
+          <div class="form-group">
+            <label for="eUnitArea">Área (m²) — opcional</label>
+            <input type="number" id="eUnitArea" min="0" placeholder="Ej. 45">
+          </div>
+        </div>
+
+        <p class="section-sub">Inquilino actual</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eTenantName">Nombre completo</label>
+            <input type="text" id="eTenantName" placeholder="Juan García López">
+          </div>
+          <div class="form-group">
+            <label for="eTenantPhone">Teléfono</label>
+            <input type="tel" id="eTenantPhone" placeholder="+52 1234567890" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eTenantEmail">Correo electrónico</label>
+            <input type="email" id="eTenantEmail" placeholder="inquilino@email.com">
+          </div>
+          <div class="form-group">
+            <label for="eLeaseEnd">Vencimiento del contrato</label>
+            <input type="date" id="eLeaseEnd">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="eUnitNotes">Notas adicionales</label>
+          <textarea id="eUnitNotes" rows="2" placeholder="Observaciones, acuerdos, etc."></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="editUnitCancel">Cancelar</button>
+          <button type="submit" class="btn-submit">Guardar Unidad</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script type="module" src="../scripts/property.js"></script>
+</body>
+</html>

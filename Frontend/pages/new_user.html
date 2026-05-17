@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floast - Crear Cuenta</title>
+    <link rel="stylesheet" href="../css/colors.css">
+    <link rel="stylesheet" href="../css/new_user.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>DOMI</h1>
+                <p>Crea tu cuenta</p>
+            </div>
+
+            <!-- Indicador de pasos -->
+            <div class="steps-indicator">
+                <div class="step-dot active" id="dotStep1">
+                    <div class="dot">1</div>
+                    <span class="step-label">Personal</span>
+                </div>
+                <div class="step-connector" id="stepConnector"></div>
+                <div class="step-dot" id="dotStep2">
+                    <div class="dot">2</div>
+                    <span class="step-label">Acceso</span>
+                </div>
+            </div>
+
+            <form id="registerForm" class="auth-form">
+                <!-- Paso 1: Datos Personales -->
+                <div id="registerStep1" class="register-step active">
+                    <h3>Datos Personales</h3>
+
+                    <div class="form-group">
+                        <label for="firstName">Nombre(s)</label>
+                        <input
+                            type="text"
+                            id="firstName"
+                            name="firstName"
+                            placeholder="Juan"
+                            autocomplete="given-name"
+                            required
+                        >
+                        <span class="error-message" id="firstNameError"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fatherLastName">Apellido Paterno</label>
+                            <input
+                                type="text"
+                                id="fatherLastName"
+                                name="fatherLastName"
+                                placeholder="García"
+                                autocomplete="family-name"
+                                required
+                            >
+                            <span class="error-message" id="fatherLastNameError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="motherLastName">Apellido Materno</label>
+                            <input
+                                type="text"
+                                id="motherLastName"
+                                name="motherLastName"
+                                placeholder="López"
+                                autocomplete="additional-name"
+                            >
+                            <span class="error-message" id="motherLastNameError"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Número Telefónico</label>
+                        <div class="phone-input-wrapper">
+                            <select id="countryCode" name="countryCode" required></select>
+                            <input
+                                type="tel"
+                                id="phone"
+                                name="phone"
+                                placeholder="1234567890"
+                                autocomplete="tel-national"
+                                inputmode="numeric"
+                                required
+                            >
+                        </div>
+                        <span class="error-message" id="phoneError"></span>
+                    </div>
+
+                    <button type="button" class="btn-submit" id="nextStep1">
+                        Continuar
+                    </button>
+                </div>
+
+                <!-- Paso 2: Credenciales -->
+                <div id="registerStep2" class="register-step">
+                    <h3>Crear Acceso</h3>
+
+                    <div class="form-group">
+                        <label for="registerEmail">Correo Electrónico</label>
+                        <input
+                            type="email"
+                            id="registerEmail"
+                            name="email"
+                            placeholder="tu@email.com"
+                            autocomplete="email"
+                            required
+                        >
+                        <span class="error-message" id="registerEmailError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="registerPassword">Contraseña</label>
+                        <div class="password-input-wrapper">
+                            <input
+                                type="password"
+                                id="registerPassword"
+                                name="password"
+                                placeholder="Contraseña"
+                                autocomplete="new-password"
+                                required
+                            >
+                            <button type="button" class="toggle-password" id="toggleRegisterPassword">👁️</button>
+                        </div>
+                        <span class="error-message" id="registerPasswordError"></span>
+
+                        <div class="password-strength">
+                            <div class="strength-meter">
+                                <div id="strengthBar" class="strength-bar"></div>
+                            </div>
+                        </div>
+
+                        <div class="password-requirements">
+                            <p class="requirement-title">La contraseña debe contener:</p>
+                            <ul>
+                                <li id="req-length"><span class="check">✗</span> Mínimo 8 caracteres</li>
+                                <li id="req-uppercase"><span class="check">✗</span> Al menos una mayúscula</li>
+                                <li id="req-number"><span class="check">✗</span> Al menos un número</li>
+                                <li id="req-special"><span class="check">✗</span> Al menos un carácter especial (!@#$%^&*)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmar Contraseña</label>
+                        <div class="password-input-wrapper">
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                placeholder="Confirma tu contraseña"
+                                autocomplete="new-password"
+                                required
+                            >
+                            <button type="button" class="toggle-password" id="toggleConfirmPassword">👁️</button>
+                        </div>
+                        <span class="error-message" id="confirmPasswordError"></span>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-back" id="backStep2">Atrás</button>
+                        <button type="submit" class="btn-submit">Crear Cuenta</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="auth-divider">
+                <span>¿Ya tienes cuenta?</span>
+            </div>
+
+            <a href="login.html" class="btn-link">Iniciar sesión</a>
+        </div>
+    </div>
+
+    <!-- countries.js NO es módulo (expone función global al DOM) -->
+    <script src="../scripts/countries.js"></script>
+    <!-- new_user.js SÍ es módulo (usa import de auth.js) -->
+    <script type="module" src="../scripts/new_user.js"></script>
+</body>
+</html>

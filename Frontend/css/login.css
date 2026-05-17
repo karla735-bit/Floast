@@ -1,0 +1,463 @@
+/* ============================================================
+   FLOAST — Login  |  Responsivo: móvil → tablet → desktop
+   Depende de: colors.css
+   ============================================================ */
+
+@import url('colors.css');
+
+/* ── Reset ── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ── Body / Fondo ── */
+body {
+    /* dvh: arregla el bug de Safari móvil con la barra de dirección */
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    /* Tamaño de fuente fluido: 14px en móvil → 15px en desktop */
+    font-family: var(--font-body);
+    font-size: clamp(14px, 1.5vw, 15px);
+    color: var(--color-text-primary);
+
+    background-color: var(--color-bg-base);
+    background-image: var(--gradient-bg);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Padding fluido: más ajustado en móvil, cómodo en desktop */
+    padding: clamp(1rem, 4vw, 2rem);
+
+    position: relative;
+    overflow: hidden;
+}
+
+/* Grano de textura sutil */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+}
+
+/* Línea luminosa superior */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--color-border-top-line);
+    opacity: 0.75;
+    z-index: 1;
+}
+
+/* ── Contenedor principal ── */
+.login-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 450px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Tarjeta — glassmorphism ── */
+.auth-card {
+    position: relative;
+    width: 100%;
+    background: var(--color-bg-card);
+    backdrop-filter: blur(28px) saturate(1.6) brightness(1.1);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6) brightness(1.1);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-border-strong);
+
+    /* Padding fluido: compacto en móvil, cómodo en desktop */
+    padding: clamp(1.5rem, 5vw, 2.5rem) clamp(1.25rem, 5vw, 2.25rem) clamp(1.25rem, 4vw, 2rem);
+
+    box-shadow: var(--shadow-card);
+    animation: cardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cardIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Reflejo naranja en borde superior */
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-accent-bright), transparent);
+    border-radius: 50%;
+    opacity: 0.85;
+}
+
+/* ── Encabezado ── */
+.auth-header {
+    text-align: center;
+    margin-bottom: clamp(1.25rem, 4vw, 2rem);
+}
+
+.auth-header h1 {
+    font-family: var(--font-display);
+    /* Título fluido: 1.7rem en móvil pequeño → 2.1rem en desktop */
+    font-size: clamp(1.7rem, 5vw, 2.1rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    background: linear-gradient(135deg, #FFFFFF 30%, var(--color-accent-bright) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.auth-header p {
+    margin-top: 0.45rem;
+    font-size: clamp(0.7rem, 1.8vw, 0.825rem);
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+/* ── Formulario ── */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-group label {
+    font-size: clamp(0.7rem, 1.8vw, 0.78rem);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+/* Inputs — mínimo 48px en táctil (estándar de accesibilidad) */
+.form-group input {
+    width: 100%;
+    height: clamp(48px, 6vw, 44px);
+    padding: 0 14px;
+    font-family: var(--font-body);
+    font-size: clamp(0.875rem, 2vw, 0.9rem);
+    color: var(--color-text-primary);
+    background: var(--color-bg-input);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    outline: none;
+    /* Evita que iOS haga zoom al enfocar inputs con font-size < 16px */
+    font-size: max(16px, 0.9rem);
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    caret-color: var(--color-accent-bright);
+    /* Evita que iOS aplique estilos propios a los inputs */
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.form-group input::placeholder {
+    color: var(--color-text-dim);
+}
+
+.form-group input:hover {
+    background: var(--color-bg-input-focus);
+    border-color: var(--color-border-strong);
+}
+
+.form-group input:focus {
+    background: var(--color-bg-input-focus);
+    border-color: var(--color-border-accent);
+    box-shadow: var(--shadow-focus);
+}
+
+/* Wrapper contraseña */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    padding-right: 48px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    /* Área táctil mínima de 44x44px */
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    padding: 0;
+    transition: color 0.15s;
+    /* Evita que el tap en móvil active el hover */
+    -webkit-tap-highlight-color: transparent;
+}
+
+.toggle-password:hover {
+    color: var(--color-text-primary);
+}
+
+/* Mensajes de error */
+.error-message {
+    font-size: 0.75rem;
+    color: var(--color-error);
+    min-height: 1em;
+    display: block;
+}
+
+/* ── Botón principal — mínimo 48px táctil ── */
+.btn-submit {
+    margin-top: 0.5rem;
+    width: 100%;
+    height: clamp(48px, 6vw, 46px);
+    font-family: var(--font-display);
+    font-size: clamp(0.8rem, 2vw, 0.85rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+    border-radius: var(--radius-md);
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-bright) 100%);
+    box-shadow: var(--shadow-btn-accent);
+    transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+    /* Área táctil y tap highlight */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.btn-submit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+/* Hover solo en dispositivos que lo soportan (no aplica en táctil) */
+@media (hover: hover) {
+    .btn-submit:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-btn-accent-hover);
+    }
+}
+
+.btn-submit:active {
+    transform: translateY(0) scale(0.98);
+    filter: brightness(0.95);
+}
+
+/* ── Divisor ── */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: clamp(1rem, 3vw, 1.5rem) 0 0.75rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-border);
+}
+
+.auth-divider span {
+    font-size: 0.75rem;
+    color: var(--color-text-dim);
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+}
+
+/* ── Links secundarios ── */
+.btn-link,
+.btn-recover {
+    display: block;
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: color 0.15s;
+    /* Área táctil cómoda */
+    padding: 0.5rem 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-link {
+    color: var(--color-accent-bright);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+@media (hover: hover) {
+    .btn-link:hover {
+        color: var(--color-text-primary);
+    }
+
+    .btn-recover:hover {
+        color: var(--color-text-muted);
+    }
+}
+
+.btn-recover {
+    font-size: 0.78rem;
+    color: var(--color-text-dim);
+}
+
+/* ================================================================
+   BREAKPOINTS
+   Mobile first: los estilos base son para móvil.
+   Se expanden hacia arriba según el ancho disponible.
+   ================================================================ */
+
+/* ── Móvil pequeño (< 360px) — teléfonos muy compactos ── */
+@media (max-width: 359px) {
+    .auth-card {
+        border-radius: var(--radius-lg);
+    }
+
+    .auth-header h1 {
+        font-size: 1.5rem;
+        letter-spacing: 0.08em;
+    }
+}
+
+/* ── Móvil estándar (360px – 480px) ── */
+/* Los estilos base ya cubren este rango correctamente */
+
+/* ── Tablet portrait (481px – 768px) ── */
+@media (min-width: 481px) and (max-width: 768px) {
+    .login-container {
+        max-width: 440px;
+    }
+}
+
+/* ── Tablet landscape / desktop pequeño (769px – 1024px) ── */
+@media (min-width: 769px) {
+    .login-container {
+        max-width: 420px;
+    }
+
+    /* En pantallas más grandes el hover del botón tiene más presencia */
+    .btn-submit {
+        height: 46px;
+    }
+
+    .form-group input {
+        height: 44px;
+        /* En desktop no hay riesgo de zoom, volvemos al tamaño normal */
+        font-size: 0.9rem;
+    }
+}
+
+/* ── Desktop grande (> 1280px) ── */
+@media (min-width: 1280px) {
+    body {
+        font-size: 15px;
+    }
+}
+
+/* ── Landscape en móvil — pantalla muy corta ── */
+@media (max-height: 600px) and (orientation: landscape) {
+    body {
+        align-items: flex-start;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .auth-card {
+        padding: 1.25rem 2rem 1rem;
+    }
+
+    .auth-header {
+        margin-bottom: 1rem;
+    }
+
+    .auth-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .auth-header p {
+        display: none;
+    }
+
+    .auth-form {
+        gap: 0.65rem;
+    }
+
+    .auth-divider {
+        margin: 0.75rem 0 0.4rem;
+    }
+}
+
+/* ── Preferencia de movimiento reducido (accesibilidad) ── */
+@media (prefers-reduced-motion: reduce) {
+    .auth-card {
+        animation: none;
+    }
+
+    .btn-submit,
+    .btn-link,
+    .btn-recover,
+    .toggle-password,
+    .form-group input {
+        transition: none;
+    }
+}
+
+/* ── Estado de error en inputs (activado desde login.js) ── */
+.form-group.has-error input {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px var(--color-error-muted);
+}
+ 
+/* Estado de carga en el botón */
+.btn-submit:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}

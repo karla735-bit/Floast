@@ -1,0 +1,91 @@
+/* ============================================================
+   FLOAST — Design Tokens
+   Fuente única de verdad para colores, tipografía y radios.
+   Importar este archivo en cada CSS que los necesite:
+     @import url('../styles/colors.css');
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root {
+
+    /* ── Acento principal — Naranja ── */
+    --color-accent: #F27000;
+    --color-accent-bright: #FF8C00;
+    --color-accent-glow: rgba(242, 112, 0, 0.40);
+    --color-accent-muted: rgba(242, 112, 0, 0.12);
+    --color-accent-border: rgba(242, 112, 0, 0.50);
+
+    /* ── Fondos ── */
+    --color-bg-base: #090909;
+    /* fondo raíz de la app */
+    --color-bg-surface: #0F0F10;
+    /* superficies secundarias, sidebars */
+    --color-bg-card: rgba(255, 255, 255, 0.06);
+    /* tarjetas glass */
+    --color-bg-input: rgba(255, 255, 255, 0.05);
+    /* inputs */
+    --color-bg-input-focus: rgba(255, 255, 255, 0.08);
+    /* inputs en foco */
+    --color-bg-overlay: rgba(9, 9, 9, 0.75);
+    /* modales / overlays */
+
+    /* ── Gradiente de fondo (lámpara superior) ── */
+    --gradient-bg:
+        radial-gradient(ellipse 65% 75% at 50% -5%, rgba(242, 112, 0, 0.72) 0%, rgba(200, 78, 0, 0.22) 55%, transparent 78%),
+        radial-gradient(ellipse 40% 40% at 50% 0%, rgba(255, 148, 0, 0.30) 0%, transparent 55%);
+
+    /* ── Bordes ── */
+    --color-border: rgba(255, 255, 255, 0.09);
+    /* borde base */
+    --color-border-strong: rgba(255, 255, 255, 0.13);
+    /* borde tarjetas */
+    --color-border-accent: rgba(242, 112, 0, 0.50);
+    /* borde foco/acento */
+    --color-border-top-line: linear-gradient(90deg, transparent 0%, #F27000 38%, #FF8C00 62%, transparent 100%);
+
+    /* ── Texto ── */
+    --color-text-primary: #F0EEE8;
+    --color-text-muted: rgba(240, 238, 232, 0.45);
+    --color-text-dim: rgba(240, 238, 232, 0.25);
+
+    /* ── Semánticos (estado) ── */
+    --color-success: #3DB87A;
+    --color-success-muted: rgba(61, 184, 122, 0.12);
+    --color-error: #F06060;
+    --color-error-muted: rgba(240, 96, 96, 0.12);
+    --color-warning: #F2B200;
+    --color-warning-muted: rgba(242, 178, 0, 0.12);
+    --color-info: #4A9EF5;
+    --color-info-muted: rgba(74, 158, 245, 0.12);
+
+    /* ── Tipografía ── */
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+
+    /* ── Radios ── */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-card: 18px;
+    --radius-full: 9999px;
+
+    /* ── Sombras ── */
+    --shadow-card:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+        0 4px 6px rgba(0, 0, 0, 0.40),
+        0 24px 60px rgba(0, 0, 0, 0.60),
+        0 -8px 40px rgba(242, 112, 0, 0.16);
+
+    --shadow-btn-accent:
+        0 2px 8px rgba(242, 112, 0, 0.50),
+        0 0 24px rgba(242, 112, 0, 0.22);
+
+    --shadow-btn-accent-hover:
+        0 4px 16px rgba(242, 112, 0, 0.60),
+        0 0 40px rgba(242, 112, 0, 0.32);
+
+    --shadow-focus:
+        0 0 0 3px rgba(242, 112, 0, 0.15);
+}

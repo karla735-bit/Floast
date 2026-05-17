@@ -1,0 +1,4 @@
+Solo se manejan 2 tipos de vivienda edificio para rentar cuartos, casa
+-si es casa el usuario tiene permito en la prueba gratuita tener 2 casas y 1 edificio
+-la version premium debe permitir poder registrar los que quieras
+
