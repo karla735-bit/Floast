@@ -242,7 +242,7 @@ body::after {
   flex-wrap: wrap;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--color-border);
-  margin-bottom: 1.5rem; /* <--- Agrega esta línea */
+  margin-bottom: 1.5rem; 
 }
 
 .units-bar-label {
