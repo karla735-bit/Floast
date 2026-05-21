@@ -81,43 +81,26 @@
             <span class="error-message" id="ePropNameError"></span>
           </div>
           <div class="form-group">
-            <label for="ePropType">Tipo</label>
-            <select id="ePropType" required>
-              <option value="casa">Casa</option>
-              <option value="departamento">Departamento</option>
-              <option value="cuarto">Cuarto / Habitación</option>
-              <option value="condominio">Condominio</option>
-              <option value="edificio">Edificio</option>
-              <option value="local">Local comercial</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
             <label for="ePropLocation">Ubicación</label>
             <input type="text" id="ePropLocation" required>
             <span class="error-message" id="ePropLocationError"></span>
           </div>
-          <div class="form-group">
-            <label for="ePropUnits">Unidades</label>
-            <input type="number" id="ePropUnits" min="1" required>
-            <span class="error-message" id="ePropUnitsError"></span>
-          </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="ePropPrice">Renta mensual ($)</label>
-            <input type="number" id="ePropPrice" min="0" required>
-            <span class="error-message" id="ePropPriceError"></span>
-          </div>
-          <div class="form-group">
-            <label for="ePropStatus">Estado</label>
-            <select id="ePropStatus" required>
-              <option value="disponible">Disponible</option>
-              <option value="rentada">Rentada</option>
-              <option value="mantenimiento">En mantenimiento</option>
-            </select>
-          </div>
+        <div class="form-group" id="ePropPriceGroup">
+          <label for="ePropPrice">Renta mensual global ($)</label>
+          <input type="number" id="ePropPrice" min="0">
+        </div>
+        <div class="form-group">
+          <label for="ePropStatus">Estado</label>
+          <select id="ePropStatus" required>
+            <option value="disponible">Disponible</option>
+            <option value="rentada">Rentada</option>
+            <option value="mantenimiento">En mantenimiento</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ePropDescription">Descripción general</label>
+          <textarea id="ePropDescription" rows="3" placeholder="Describe el inmueble..."></textarea>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-secondary" id="editPropCancel">Cancelar</button>
@@ -164,6 +147,10 @@
             <input type="number" id="eUnitArea" min="0" placeholder="Ej. 45">
           </div>
         </div>
+        <div class="form-group">
+          <label for="eUnitDesc">Descripción de la unidad</label>
+          <textarea id="eUnitDesc" rows="2" placeholder="Describe la habitación o local..."></textarea>
+        </div>
 
         <p class="section-sub">Inquilino actual</p>
         <div class="form-row">
@@ -199,7 +186,7 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script type="module" src="../scripts/property.js"></script>
 </body>
 </html>

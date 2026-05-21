@@ -1,25 +1,25 @@
 // ============================================================
-//  FLOAST — property.js
-//  Vista de detalle de propiedad.
-//  Habla con propertyService.js y unitService.js
+//  FLOAST — property.js  |  Vista de detalle de propiedad
+//
+//  Casos:
+//  1. vivienda + completo   → ficha única (sin tabs)
+//  2. vivienda + individual → tabs de habitaciones
+//  3. edificio + completo   → ficha única (sin tabs)
+//  4. edificio normal + individual → tabs de habitaciones
+//  5. edificio híbrido + individual → tabs con dos grupos: locales y habitaciones
 // ============================================================
 
 import { getPropertyById, updateProperty } from "./propertyService.js";
 import { getUnits, updateUnit }             from "./unitService.js";
 import { onAuthChange }                     from "./auth.js";
 
-// ── Protección de ruta ────────────────────────────────────────
-// onAuthChange devuelve el usuario mock durante desarrollo,
-// así que esto nunca redirige mientras no haya Firebase real.
 onAuthChange(user => { if (!user) window.location.href = "login.html"; });
 
-// ── Leer el id de la URL ──────────────────────────────────────
 const params = new URLSearchParams(window.location.search);
 const propId = params.get("id");
-
 if (!propId) window.location.href = "dashboard.html";
 
-// ── Referencias DOM ───────────────────────────────────────────
+// ── DOM ───────────────────────────────────────────────────────
 const loadingScreen   = document.getElementById("loadingScreen");
 const propMain        = document.getElementById("propMain");
 const headerName      = document.getElementById("headerPropName");
@@ -31,43 +31,29 @@ const unitsBar        = document.getElementById("unitsBar");
 const unitDetail      = document.getElementById("unitDetail");
 const singleDetail    = document.getElementById("singleDetail");
 
-// Modales propiedad
+// Modal editar propiedad
 const modalEditProp   = document.getElementById("modalEditProp");
 const editPropForm    = document.getElementById("editPropForm");
 const editPropClose   = document.getElementById("editPropClose");
 const editPropCancel  = document.getElementById("editPropCancel");
 const editPropSubmit  = document.getElementById("editPropSubmit");
 
-// Modales unidad
+// Modal editar unidad
 const modalEditUnit   = document.getElementById("modalEditUnit");
 const editUnitForm    = document.getElementById("editUnitForm");
 const editUnitClose   = document.getElementById("editUnitClose");
 const editUnitCancel  = document.getElementById("editUnitCancel");
 const editUnitTitle   = document.getElementById("editUnitTitle");
 
-// Estado local
-let currentProp   = null;
-let currentUnits  = [];
-let activeUnitId  = null;
+let currentProp  = null;
+let currentUnits = [];
+let activeUnitId = null;
 
-const TYPE_LABELS = {
-  casa: "Casa", condominio: "Condominio", edificio: "Edificio",
-  departamento: "Departamento", cuarto: "Cuarto / Habitación", local: "Local comercial",
-};
+const TYPE_LABELS     = { vivienda: "Vivienda", edificio: "Edificio" };
+const BUILDING_LABELS = { normal: "Normal", hibrido: "Híbrido" };
+const RENT_LABELS     = { completo: "Completo", individual: "Por unidades" };
 
-const SINGLE_TYPES = ["casa", "departamento", "cuarto", "local"];
-
-// ── Inicialización ────────────────────────────────────────────
-// ── Lucide seguro — espera a que el CDN cargue ───────────────
-function createIcons() {
-  if (typeof lucide !== "undefined") {
-    lucide.createIcons();
-  } else {
-    // Reintenta hasta que lucide esté disponible
-    setTimeout(createIcons, 50);
-  }
-}
-
+// ── Init ──────────────────────────────────────────────────────
 async function init() {
   try {
     const [prop, units] = await Promise.all([
@@ -85,7 +71,7 @@ async function init() {
 
     loadingScreen.hidden = true;
     propMain.hidden      = false;
-    createIcons();
+    lucide.createIcons();
 
   } catch (err) {
     console.error("Error cargando propiedad:", err);
@@ -93,7 +79,6 @@ async function init() {
     propMain.hidden      = false;
   }
 }
-
 init();
 
 // ── Header ────────────────────────────────────────────────────
@@ -101,131 +86,178 @@ function renderHeader(prop) {
   document.title = `Floast — ${prop.name}`;
   headerName.textContent = prop.name;
 
-  const typeLabel  = TYPE_LABELS[prop.type] || prop.type;
-  const unitsLabel = prop.units === 1 ? "1 unidad" : `${prop.units} unidades`;
+  const typeLabel     = TYPE_LABELS[prop.type] || prop.type;
+  const buildingLabel = prop.buildingType ? ` · ${BUILDING_LABELS[prop.buildingType]}` : "";
+  const rentLabel     = RENT_LABELS[prop.rentMode] || "";
 
   headerMeta.innerHTML = `
-    <span class="header-meta-item">
-      <i data-lucide="tag"></i>${typeLabel}
-    </span>
-    <span class="header-meta-item">
-      <i data-lucide="map-pin"></i>${prop.location}
-    </span>
-    <span class="header-meta-item">
-      <i data-lucide="layers"></i>${unitsLabel}
-    </span>
+    <span class="header-meta-item"><i data-lucide="tag"></i>${typeLabel}${buildingLabel}</span>
+    <span class="header-meta-item"><i data-lucide="map-pin"></i>${prop.location}</span>
+    <span class="header-meta-item"><i data-lucide="key"></i>${rentLabel}</span>
   `;
 
-  propStatusBadge.textContent        = capitalize(prop.status);
-  propStatusBadge.dataset.status     = prop.status;
+  propStatusBadge.textContent    = capitalize(prop.status);
+  propStatusBadge.dataset.status = prop.status;
 }
 
 // ── Contenido principal ───────────────────────────────────────
 function renderContent(prop, units) {
-  const isSingle = SINGLE_TYPES.includes(prop.type) && prop.units <= 1;
+  const isCompleto = prop.rentMode === "completo";
 
-  if (isSingle) {
+  if (isCompleto) {
+    // Ficha única — sin tabs
     multiView.hidden  = true;
     singleView.hidden = false;
-    // Usa la primera (y única) unidad o sintetiza una desde la prop
-    const unit = units[0] || synthUnit(prop);
-    singleDetail.innerHTML = buildDetailHTML(unit, prop);
-    bindDetailActions(singleDetail, unit);
+    singleDetail.innerHTML = buildSingleHTML(prop);
+    bindDetailActions(singleDetail, null, true);
   } else {
+    // Con tabs de unidades
     multiView.hidden  = false;
     singleView.hidden = true;
-    renderUnitsBar(units);
-    // Seleccionar la primera unidad por defecto
+    renderUnitsBar(units, prop);
     if (units.length > 0) selectUnit(units[0].id);
   }
 }
 
-// ── Barra de pestañas ─────────────────────────────────────────
-function renderUnitsBar(units) {
-  unitsBar.innerHTML = `<span class="units-bar-label">Unidades</span>`;
+// ── Vista completa (ficha única) ──────────────────────────────
+function buildSingleHTML(prop) {
+  const priceStr = prop.price
+    ? `$${Number(prop.price).toLocaleString("es-MX")}<span class="summary-price-sub">/ mes</span>`
+    : `<span class="summary-price-sub">Sin precio registrado</span>`;
 
-  units.forEach(unit => {
-    const tab = document.createElement("button");
-    tab.className        = "unit-tab";
-    tab.dataset.id       = unit.id;
-    tab.dataset.status   = unit.status;
-    tab.setAttribute("role", "tab");
-    tab.setAttribute("aria-selected", "false");
-    tab.innerHTML = `<span class="tab-dot"></span>${unit.label}`;
+  return `
+    <div class="detail-grid">
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <span class="detail-card-title"><i data-lucide="home"></i>Resumen</span>
+          <button class="card-edit-btn" data-action="edit-prop"><i data-lucide="pencil"></i>Editar</button>
+        </div>
+        <div class="summary-row">${priceStr}</div>
+        <span class="unit-status-badge" data-status="${prop.status}">
+          <span class="dot"></span>${capitalize(prop.status)}
+        </span>
+        ${prop.description ? `
+        <div style="margin-top:1rem">
+          <p class="detail-data-label" style="margin-bottom:.4rem"><i data-lucide="file-text" style="width:13px;height:13px"></i> Descripción</p>
+          <p class="notes-text">${prop.description}</p>
+        </div>` : ""}
+      </div>
 
-    tab.addEventListener("click", () => selectUnit(unit.id));
-    unitsBar.appendChild(tab);
-  });
+      <div class="detail-card" id="tenantCardSingle">
+        <div class="detail-card-header">
+          <span class="detail-card-title"><i data-lucide="user"></i>Inquilino</span>
+          <button class="card-edit-btn" data-action="edit-tenant-single"><i data-lucide="pencil"></i>Editar</button>
+        </div>
+        <div class="tenant-empty">
+          <i data-lucide="user-x"></i>
+          <p>Sin inquilino asignado</p>
+          <p style="font-size:.75rem;margin-top:.25rem">Usa el botón Editar para agregar uno</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── Barra de tabs ─────────────────────────────────────────────
+function renderUnitsBar(units, prop) {
+  unitsBar.innerHTML = "";
+
+  const isHibrido = prop.type === "edificio" && prop.buildingType === "hibrido";
+
+  if (isHibrido) {
+    // Dos grupos: locales primero, luego habitaciones
+    const locales     = units.filter(u => u.category === "local");
+    const habitaciones= units.filter(u => u.category === "habitacion");
+
+    if (locales.length) {
+      const sep = document.createElement("span");
+      sep.className = "units-bar-label";
+      sep.textContent = "Locales";
+      unitsBar.appendChild(sep);
+      locales.forEach(u => unitsBar.appendChild(buildTab(u)));
+    }
+
+    if (habitaciones.length) {
+      const sep = document.createElement("span");
+      sep.className = "units-bar-label";
+      sep.style.marginLeft = "0.75rem";
+      sep.textContent = "Habitaciones";
+      unitsBar.appendChild(sep);
+      habitaciones.forEach(u => unitsBar.appendChild(buildTab(u)));
+    }
+  } else {
+    const sep = document.createElement("span");
+    sep.className = "units-bar-label";
+    sep.textContent = "Unidades";
+    unitsBar.appendChild(sep);
+    units.forEach(u => unitsBar.appendChild(buildTab(u)));
+  }
+}
+
+function buildTab(unit) {
+  const tab = document.createElement("button");
+  tab.className      = "unit-tab";
+  tab.dataset.id     = unit.id;
+  tab.dataset.status = unit.status;
+  tab.setAttribute("role", "tab");
+  tab.setAttribute("aria-selected", "false");
+
+  // Ícono diferenciado para locales
+  const dotColor = unit.category === "local" ? "var(--color-warning)" : "";
+  tab.innerHTML = `<span class="tab-dot" style="${dotColor ? `background:${dotColor}` : ""}"></span>${unit.label}`;
+  tab.addEventListener("click", () => selectUnit(unit.id));
+  return tab;
 }
 
 function selectUnit(unitId) {
   activeUnitId = unitId;
-
-  // Actualizar tabs
-  unitsBar.querySelectorAll(".unit-tab").forEach(tab => {
-    const isActive = tab.dataset.id === unitId;
-    tab.classList.toggle("active", isActive);
-    tab.setAttribute("aria-selected", isActive);
+  unitsBar.querySelectorAll(".unit-tab").forEach(t => {
+    const active = t.dataset.id === unitId;
+    t.classList.toggle("active", active);
+    t.setAttribute("aria-selected", active);
   });
 
-  // Renderizar detalle
   const unit = currentUnits.find(u => u.id === unitId);
   if (!unit) return;
 
   unitDetail.innerHTML = "";
-  unitDetail.insertAdjacentHTML("beforeend", buildDetailHTML(unit, currentProp));
-  bindDetailActions(unitDetail, unit);
+  unitDetail.insertAdjacentHTML("beforeend", buildUnitDetailHTML(unit));
+  bindDetailActions(unitDetail, unit, false);
   lucide.createIcons();
 }
 
-// ── HTML del panel de detalle ─────────────────────────────────
-function buildDetailHTML(unit, prop) {
-  const priceFormatted = Number(unit.price || prop.price).toLocaleString("es-MX");
-  const hasTenant      = unit.tenant?.name;
+// ── HTML detalle de unidad individual ────────────────────────
+function buildUnitDetailHTML(unit) {
+  const priceFormatted = unit.price ? `$${Number(unit.price).toLocaleString("es-MX")}` : "—";
+  const hasTenant      = !!unit.tenant?.name;
   const leaseWarning   = unit.tenant?.leaseEnd ? isLeaseClose(unit.tenant.leaseEnd) : false;
+  const categoryLabel  = unit.category === "local" ? "Local comercial" : "Habitación";
 
   return `
     <div class="detail-grid">
-
-      <!-- Tarjeta: Resumen -->
       <div class="detail-card">
         <div class="detail-card-header">
-          <span class="detail-card-title">
-            <i data-lucide="home"></i>Resumen
-          </span>
-          <button class="card-edit-btn" data-action="edit-unit" data-id="${unit.id}">
-            <i data-lucide="pencil"></i> Editar
-          </button>
+          <span class="detail-card-title"><i data-lucide="${unit.category === "local" ? "store" : "door-open"}"></i>${categoryLabel}</span>
+          <button class="card-edit-btn" data-action="edit-unit" data-id="${unit.id}"><i data-lucide="pencil"></i>Editar</button>
         </div>
         <div class="summary-row">
-          <span class="summary-price">$${priceFormatted}</span>
+          <span class="summary-price">${priceFormatted}</span>
           <span class="summary-price-sub">/ mes</span>
         </div>
         <span class="unit-status-badge" data-status="${unit.status}">
           <span class="dot"></span>${capitalize(unit.status)}
         </span>
         <div class="detail-data-list" style="margin-top:1rem">
-          ${unit.area ? `
-          <div class="detail-data-row">
-            <span class="detail-data-label"><i data-lucide="square"></i>Área</span>
-            <span class="detail-data-value">${unit.area} m²</span>
-          </div>` : ""}
-          <div class="detail-data-row">
-            <span class="detail-data-label"><i data-lucide="hash"></i>Identificador</span>
-            <span class="detail-data-value">${unit.label}</span>
-          </div>
+          ${unit.area ? `<div class="detail-data-row"><span class="detail-data-label"><i data-lucide="square"></i>Área</span><span class="detail-data-value">${unit.area} m²</span></div>` : ""}
+          <div class="detail-data-row"><span class="detail-data-label"><i data-lucide="hash"></i>Identificador</span><span class="detail-data-value">${unit.label}</span></div>
         </div>
+        ${unit.description ? `<div style="margin-top:.85rem"><p class="notes-text">${unit.description}</p></div>` : ""}
       </div>
 
-      <!-- Tarjeta: Inquilino -->
       <div class="detail-card">
         <div class="detail-card-header">
-          <span class="detail-card-title">
-            <i data-lucide="user"></i>Inquilino
-          </span>
-          <button class="card-edit-btn" data-action="edit-unit" data-id="${unit.id}">
-            <i data-lucide="pencil"></i> Editar
-          </button>
+          <span class="detail-card-title"><i data-lucide="user"></i>Inquilino</span>
+          <button class="card-edit-btn" data-action="edit-unit" data-id="${unit.id}"><i data-lucide="pencil"></i>Editar</button>
         </div>
         ${hasTenant ? `
           <div class="tenant-header-row">
@@ -236,22 +268,10 @@ function buildDetailHTML(unit, prop) {
             </div>
           </div>
           <div class="detail-data-list">
-            ${unit.tenant.phone ? `
-            <div class="detail-data-row">
-              <span class="detail-data-label"><i data-lucide="phone"></i>Teléfono</span>
-              <span class="detail-data-value">${unit.tenant.phone}</span>
-            </div>` : ""}
-            ${unit.tenant.email ? `
-            <div class="detail-data-row">
-              <span class="detail-data-label"><i data-lucide="mail"></i>Correo</span>
-              <span class="detail-data-value">${unit.tenant.email}</span>
-            </div>` : ""}
+            ${unit.tenant.phone ? `<div class="detail-data-row"><span class="detail-data-label"><i data-lucide="phone"></i>Teléfono</span><span class="detail-data-value">${unit.tenant.phone}</span></div>` : ""}
+            ${unit.tenant.email ? `<div class="detail-data-row"><span class="detail-data-label"><i data-lucide="mail"></i>Correo</span><span class="detail-data-value">${unit.tenant.email}</span></div>` : ""}
           </div>
-          ${leaseWarning ? `
-          <div class="lease-alert">
-            <i data-lucide="alert-triangle"></i>
-            El contrato vence en menos de 30 días.
-          </div>` : ""}
+          ${leaseWarning ? `<div class="lease-alert"><i data-lucide="alert-triangle"></i>El contrato vence en menos de 30 días.</div>` : ""}
         ` : `
           <div class="tenant-empty">
             <i data-lucide="user-x"></i>
@@ -260,40 +280,48 @@ function buildDetailHTML(unit, prop) {
         `}
       </div>
 
-      <!-- Tarjeta: Notas (ancho completo) -->
       ${unit.notes ? `
       <div class="detail-card full-width">
         <div class="detail-card-header">
-          <span class="detail-card-title">
-            <i data-lucide="file-text"></i>Notas
-          </span>
+          <span class="detail-card-title"><i data-lucide="file-text"></i>Notas</span>
         </div>
         <p class="notes-text">${unit.notes}</p>
       </div>` : ""}
-
     </div>
   `;
 }
 
-// ── Listeners del panel de detalle ────────────────────────────
-function bindDetailActions(container, unit) {
+// ── Listeners de acciones en el panel ────────────────────────
+function bindDetailActions(container, unit, isSingle) {
   container.querySelectorAll("[data-action='edit-unit']").forEach(btn => {
     btn.addEventListener("click", () => openEditUnitModal(unit));
   });
+  container.querySelectorAll("[data-action='edit-prop']").forEach(btn => {
+    btn.addEventListener("click", () => openEditPropModal());
+  });
+  container.querySelectorAll("[data-action='edit-tenant-single']").forEach(btn => {
+    btn.addEventListener("click", () => openEditPropModal());
+  });
 }
 
-// ── Modal: editar propiedad ───────────────────────────────────
-document.getElementById("btnEditProp").addEventListener("click", () => {
+// ── Modal editar propiedad ────────────────────────────────────
+function openEditPropModal() {
   document.getElementById("ePropName").value     = currentProp.name;
   document.getElementById("ePropType").value     = currentProp.type;
   document.getElementById("ePropLocation").value = currentProp.location;
-  document.getElementById("ePropUnits").value    = currentProp.units;
-  document.getElementById("ePropPrice").value    = currentProp.price;
   document.getElementById("ePropStatus").value   = currentProp.status;
-  showModal(modalEditProp);
-});
+  document.getElementById("ePropDescription").value = currentProp.description || "";
 
-[editPropClose, editPropCancel].forEach(b => b.addEventListener("click", () => hideModal(modalEditProp)));
+  // Precio solo si rentMode completo
+  const priceGroup = document.getElementById("ePropPriceGroup");
+  if (priceGroup) priceGroup.hidden = currentProp.rentMode !== "completo";
+  const priceInput = document.getElementById("ePropPrice");
+  if (priceInput) priceInput.value = currentProp.price || "";
+
+  showModal(modalEditProp);
+}
+
+[editPropClose, editPropCancel].forEach(b => b?.addEventListener("click", () => hideModal(modalEditProp)));
 modalEditProp.addEventListener("click", e => { if (e.target === modalEditProp) hideModal(modalEditProp); });
 
 editPropForm.addEventListener("submit", async e => {
@@ -302,18 +330,26 @@ editPropForm.addEventListener("submit", async e => {
   editPropSubmit.textContent = "Guardando…";
 
   const data = {
-    name:     document.getElementById("ePropName").value.trim(),
-    type:     document.getElementById("ePropType").value,
-    location: document.getElementById("ePropLocation").value.trim(),
-    units:    Number(document.getElementById("ePropUnits").value),
-    price:    Number(document.getElementById("ePropPrice").value),
-    status:   document.getElementById("ePropStatus").value,
+    name:        document.getElementById("ePropName").value.trim(),
+    location:    document.getElementById("ePropLocation").value.trim(),
+    status:      document.getElementById("ePropStatus").value,
+    description: document.getElementById("ePropDescription").value.trim(),
   };
+
+  if (currentProp.rentMode === "completo") {
+    data.price = Number(document.getElementById("ePropPrice")?.value) || null;
+  }
 
   try {
     await updateProperty(propId, data);
     currentProp = { ...currentProp, ...data };
     renderHeader(currentProp);
+
+    // Re-renderizar detalle si es vista completa
+    if (currentProp.rentMode === "completo") {
+      singleDetail.innerHTML = buildSingleHTML(currentProp);
+      bindDetailActions(singleDetail, null, true);
+    }
     lucide.createIcons();
     hideModal(modalEditProp);
   } catch (err) {
@@ -324,38 +360,40 @@ editPropForm.addEventListener("submit", async e => {
   }
 });
 
-// ── Modal: editar unidad ──────────────────────────────────────
+// ── Modal editar unidad ───────────────────────────────────────
 function openEditUnitModal(unit) {
+  if (!unit) return;
   editUnitTitle.textContent = `Editar — ${unit.label}`;
-  document.getElementById("editUnitId").value    = unit.id;
-  document.getElementById("eUnitLabel").value    = unit.label;
-  document.getElementById("eUnitStatus").value   = unit.status;
-  document.getElementById("eUnitPrice").value    = unit.price || "";
-  document.getElementById("eUnitArea").value     = unit.area  || "";
-  document.getElementById("eTenantName").value   = unit.tenant?.name  || "";
-  document.getElementById("eTenantPhone").value  = unit.tenant?.phone || "";
-  document.getElementById("eTenantEmail").value  = unit.tenant?.email || "";
-  document.getElementById("eLeaseEnd").value     = unit.tenant?.leaseEnd || "";
-  document.getElementById("eUnitNotes").value    = unit.notes || "";
+  document.getElementById("editUnitId").value   = unit.id;
+  document.getElementById("eUnitLabel").value   = unit.label;
+  document.getElementById("eUnitStatus").value  = unit.status;
+  document.getElementById("eUnitPrice").value   = unit.price || "";
+  document.getElementById("eUnitArea").value    = unit.area  || "";
+  document.getElementById("eUnitDesc").value    = unit.description || "";
+  document.getElementById("eTenantName").value  = unit.tenant?.name  || "";
+  document.getElementById("eTenantPhone").value = unit.tenant?.phone || "";
+  document.getElementById("eTenantEmail").value = unit.tenant?.email || "";
+  document.getElementById("eLeaseEnd").value    = unit.tenant?.leaseEnd || "";
+  document.getElementById("eUnitNotes").value   = unit.notes || "";
   showModal(modalEditUnit);
 }
 
-[editUnitClose, editUnitCancel].forEach(b => b.addEventListener("click", () => hideModal(modalEditUnit)));
+[editUnitClose, editUnitCancel].forEach(b => b?.addEventListener("click", () => hideModal(modalEditUnit)));
 modalEditUnit.addEventListener("click", e => { if (e.target === modalEditUnit) hideModal(modalEditUnit); });
 
 editUnitForm.addEventListener("submit", async e => {
   e.preventDefault();
   const submitBtn = editUnitForm.querySelector('[type="submit"]');
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Guardando…";
+  submitBtn.disabled = true; submitBtn.textContent = "Guardando…";
 
   const unitId = document.getElementById("editUnitId").value;
   const data = {
-    label:  document.getElementById("eUnitLabel").value.trim(),
-    status: document.getElementById("eUnitStatus").value,
-    price:  Number(document.getElementById("eUnitPrice").value) || 0,
-    area:   Number(document.getElementById("eUnitArea").value)  || null,
-    notes:  document.getElementById("eUnitNotes").value.trim(),
+    label:       document.getElementById("eUnitLabel").value.trim(),
+    status:      document.getElementById("eUnitStatus").value,
+    price:       Number(document.getElementById("eUnitPrice").value) || 0,
+    area:        Number(document.getElementById("eUnitArea").value)  || null,
+    description: document.getElementById("eUnitDesc").value.trim(),
+    notes:       document.getElementById("eUnitNotes").value.trim(),
     tenant: {
       name:     document.getElementById("eTenantName").value.trim(),
       phone:    document.getElementById("eTenantPhone").value.trim(),
@@ -363,32 +401,20 @@ editUnitForm.addEventListener("submit", async e => {
       leaseEnd: document.getElementById("eLeaseEnd").value || null,
     },
   };
-
-  // Limpiar tenant si no hay nombre
   if (!data.tenant.name) data.tenant = null;
 
   try {
     await updateUnit(propId, unitId, data);
-    // Actualizar estado local
     const idx = currentUnits.findIndex(u => u.id === unitId);
     if (idx !== -1) currentUnits[idx] = { ...currentUnits[idx], ...data };
-
-    // Re-renderizar
-    if (multiView.hidden === false) {
-      renderUnitsBar(currentUnits);
-      selectUnit(unitId);
-    } else {
-      singleDetail.innerHTML = buildDetailHTML(currentUnits[0] || synthUnit(currentProp), currentProp);
-      bindDetailActions(singleDetail, currentUnits[0]);
-    }
-
+    renderUnitsBar(currentUnits, currentProp);
+    selectUnit(unitId);
     lucide.createIcons();
     hideModal(modalEditUnit);
   } catch (err) {
     console.error("Error actualizando unidad:", err);
   } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Guardar Unidad";
+    submitBtn.disabled = false; submitBtn.textContent = "Guardar Unidad";
   }
 });
 
@@ -403,34 +429,7 @@ document.addEventListener("keydown", e => {
 // ── Helpers ───────────────────────────────────────────────────
 function showModal(m) { m.hidden = false; document.body.style.overflow = "hidden"; setTimeout(() => m.querySelector("input,select,button")?.focus(), 50); }
 function hideModal(m) { m.hidden = true;  document.body.style.overflow = ""; }
-
 function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ""; }
-
-function getInitials(name) {
-  return (name || "").split(" ").filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function isLeaseClose(dateStr) {
-  if (!dateStr) return false;
-  const diff = new Date(dateStr) - new Date();
-  return diff > 0 && diff < 30 * 24 * 60 * 60 * 1000;
-}
-
-// Sintetiza una unidad desde los datos de la propiedad (casas de 1 unidad sin unidades en BD)
-function synthUnit(prop) {
-  return {
-    id:     "synth",
-    label:  prop.name,
-    status: prop.status,
-    price:  prop.price,
-    area:   null,
-    tenant: null,
-    notes:  "",
-  };
-}
+function getInitials(n) { return (n||"").split(" ").filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join(""); }
+function formatDate(d) { if (!d) return ""; return new Date(d+"T00:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"}); }
+function isLeaseClose(d) { if (!d) return false; const diff = new Date(d)-new Date(); return diff > 0 && diff < 30*24*60*60*1000; }
